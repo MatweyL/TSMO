@@ -5,6 +5,8 @@ from math import factorial
 import numpy as np
 from matplotlib import pyplot as plt
 
+from homework05.utils import create_numpy_meshgrid_from_lists
+
 
 def calculate_p0(y: float, n: int, M: int, ) -> float:
     y_div_n = y / n
@@ -68,7 +70,7 @@ def solve(n: int, M: int, lambda_: int, mu: int) -> SMOParams:
     return SMOParams(Q=Q, A=A, mean_k_busy=mean_k_busy, l=l, u=u)
 
 
-def plot_smo_params(lambda_range, mu_range, smo_params_list):
+def plot_smo_params(X, Y, smo_params_list):
     fig = plt.figure(figsize=(20, 15))
 
     params = ['Q', 'A', 'mean_k_busy', 'l', 'u']
@@ -78,8 +80,8 @@ def plot_smo_params(lambda_range, mu_range, smo_params_list):
 
     for i, param in enumerate(params, 1):
         ax = fig.add_subplot(2, 3, i, projection='3d')
-        X, Y = np.meshgrid(lambda_range, mu_range)
         Z = np.array([[getattr(smo, param) for smo in smo_params_list]])
+        Z = Z.reshape(X.shape)
 
         surf = ax.plot_surface(X, Y, Z, cmap='viridis')
         ax.set_xlabel('λ (интенсивность входящего потока)')
@@ -113,10 +115,11 @@ def main():
     mu_range = copy.copy(lambda_range)
 
     # Решение
-    smo_params_list = [solve(n, M, lambda_, mu) for lambda_, mu in zip(lambda_range, mu_range)]
+    lambda_meshgrid, mu_mashgrid = create_numpy_meshgrid_from_lists(lambda_range, mu_range)
+    smo_params_list = [solve(n, M, lambda_, mu) for lambda_, mu in zip(lambda_meshgrid, mu_mashgrid)]
 
     # 5 графиков по каждому полю (зависимость от lambda_ и mu)
-    plot_smo_params(lambda_range, mu_range, smo_params_list)
+    plot_smo_params(lambda_meshgrid, mu_mashgrid, smo_params_list)
 
 if __name__ == '__main__':
     main()
